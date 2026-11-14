@@ -4,134 +4,245 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b0b10">
 <title>GAMON Donate Admin</title>
 <style>
-  :root{--bg:#0b0b10;--card:#14141d;--line:#262634;--text:#f2f2f7;--muted:#8b8ba0;--accent:#ff8c3c;--danger:#ff5d5d}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-  .wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
-  h1{font-size:20px;margin:0}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
-  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-  .stat b{display:block;font-size:22px;color:var(--accent)}
-  .stat span{color:var(--muted);font-size:13px}
-  input{width:100%;background:#0e0e15;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px;font:inherit}
-  input:focus{outline:2px solid var(--accent)}
-  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-  button{background:var(--accent);color:#1a0d00;border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
-  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-  button.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
-  .row{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:640px){.stats{grid-template-columns:repeat(3,1fr)}.row{grid-template-columns:1fr 160px}}
-  table{width:100%;border-collapse:collapse}
-  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{color:var(--muted);font-weight:500;font-size:13px}
-  td.amt{color:var(--accent);font-weight:600;white-space:nowrap}
-  td.msg{color:var(--muted);max-width:260px;word-break:break-word}
-  td.act{white-space:nowrap;text-align:right}
-  td.act button{padding:5px 10px;font-size:13px;margin-left:4px}
-  .tablewrap{overflow-x:auto}
-  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222232;border:1px solid var(--line);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
-  .toast.show{opacity:1}
-  .toast.err{border-color:var(--danger)}
-  .hint{color:var(--muted);font-size:13px}
-  code{background:#0e0e15;padding:2px 6px;border-radius:5px;word-break:break-all}
-  dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px;width:min(440px,92vw)}
-  dialog::backdrop{background:rgba(0,0,0,.6)}
-  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-  #login{max-width:360px;margin:12vh auto}
+  :root{
+    --bg:#0b0b10; --card:#14141d; --card2:#191924; --line:#262634;
+    --text:#f2f2f7; --muted:#8b8ba0; --accent:#ff8c3c; --accent-soft:rgba(255,140,60,.12);
+    --danger:#ff5d5d; --ok:#4cd68a; --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  button,input{font:inherit;color:inherit}
   .hidden{display:none!important}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:11px 18px;font-weight:600;cursor:pointer;background:var(--accent);color:#1a0d00;transition:transform .08s,opacity .15s}
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+  .btn.danger{background:var(--danger);color:#fff}
+  .btn.block{width:100%}
+  .btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+  .icon-btn{width:34px;height:34px;display:inline-grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+  .icon-btn:hover{color:var(--text);border-color:#3a3a4d}
+  .icon-btn.del:hover{color:var(--danger);border-color:var(--danger)}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+  input{width:100%;background:#0e0e15;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  input::placeholder{color:#55556a}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+  #login{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+  .login-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 24px}
+  .logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#ff8c3c,#ff6a1a);display:grid;place-items:center;color:#1a0d00;font-weight:800;font-size:20px;margin-bottom:16px}
+  .login-card h1{margin:0 0 4px;font-size:22px}
+  .login-card p{margin:0 0 8px;color:var(--muted)}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:18px 16px 70px}
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .topbar .logo{margin:0;width:40px;height:40px;font-size:17px;border-radius:12px}
+  .topbar h1{font-size:18px;margin:0;line-height:1.2}
+  .topbar small{color:var(--muted);font-size:12px}
+  .topbar .grow{flex:1}
+  .layout{display:grid;gap:16px;grid-template-columns:1fr;grid-template-areas:"stats" "top" "add" "history" "hook"}
+  @media(min-width:920px){
+    .layout{grid-template-columns:minmax(0,1fr) 350px;grid-template-areas:"stats stats" "history top" "history add" "history hook";align-items:start}
+  }
+  .area-stats{grid-area:stats}.area-top{grid-area:top}.area-add{grid-area:add}.area-history{grid-area:history}.area-hook{grid-area:hook}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .card-h h2{margin:0;font-size:16px}
+  .card-h .sub{color:var(--muted);font-size:13px}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:640px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+  .stat b{display:block;font-size:20px;line-height:1.2;word-break:break-word}
+  .stat.hero{background:linear-gradient(135deg,rgba(255,140,60,.18),rgba(255,140,60,.04));border-color:rgba(255,140,60,.35)}
+  .stat.hero b{color:var(--accent)}
+
+  .spender{display:grid;grid-template-columns:30px 1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .spender:last-child{border-bottom:0;padding-bottom:0}
+  .rank{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--card2);color:var(--muted)}
+  .rank.r1{background:var(--accent);color:#1a0d00}
+  .rank.r2{background:rgba(255,140,60,.35);color:#ffd9bd}
+  .rank.r3{background:rgba(255,140,60,.18);color:#ffc49a}
+  .spender .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spender .meta{grid-column:2;color:var(--muted);font-size:12px}
+  .spender .tot{grid-row:1;grid-column:3;font-weight:700;color:var(--accent);white-space:nowrap}
+  .bar{grid-column:2 / 4;height:5px;border-radius:5px;background:var(--card2);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#ff8c3c,#ffb27a)}
+
+  .search{position:relative;margin-bottom:6px}
+  .search input{padding-left:40px}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .item{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:0}
+  .av{width:42px;height:42px;border-radius:13px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:16px}
+  .info{min-width:0}
+  .info .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .info .ms{color:var(--muted);font-size:13px;word-break:break-word}
+  .info .tm{color:#62627a;font-size:12px;margin-top:2px}
+  .right{text-align:right}
+  .right .am{font-weight:700;color:var(--accent);white-space:nowrap;margin-bottom:6px}
+  .btns{display:flex;gap:6px;justify-content:flex-end}
+  .empty{text-align:center;color:var(--muted);padding:28px 0}
+  .more{margin-top:12px}
+
+  .hook{display:flex;gap:8px;align-items:stretch}
+  .hook code{flex:1;min-width:0;background:#0e0e15;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12px;word-break:break-all;color:#cfcfe0}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+
+  dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:22px;width:min(430px,92vw)}
+  dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(2px)}
+  dialog h3{margin:0 0 4px;font-size:18px}
+  dialog p{margin:0;color:var(--muted)}
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#222232;border:1px solid var(--line);padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:all .22s;z-index:50;max-width:90vw}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.err{border-color:var(--danger)}
+  .toast.ok{border-color:var(--ok)}
+  .spin{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<div id="login" class="card hidden">
-  <h1>GAMON Donate Admin</h1>
-  <p class="hint">Masukkan password admin (env <code>ADMIN_PASSWORD</code> di Vercel).</p>
-  <form id="loginForm">
+<div id="login" class="hidden">
+  <form id="loginForm" class="login-card">
+    <div class="logo">G</div>
+    <h1>GAMON Donate</h1>
+    <p>Masuk untuk mengelola donasi.</p>
     <label for="pw">Password</label>
-    <input id="pw" type="password" autocomplete="current-password" required>
-    <div class="actions"><button type="submit">Masuk</button></div>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
+    <div style="height:18px"></div>
+    <button class="btn block" type="submit" id="loginBtn">Masuk</button>
   </form>
 </div>
 
 <div id="app" class="wrap hidden">
-  <header>
-    <h1>GAMON Donate Admin</h1>
-    <button class="ghost" id="logout">Keluar</button>
-  </header>
-
-  <div class="card stats">
-    <div class="stat"><b id="sCount">0</b><span>Total donasi</span></div>
-    <div class="stat"><b id="sTotal">0</b><span>Total nominal</span></div>
-    <div class="stat"><b id="sDonors">0</b><span>Donatur unik</span></div>
+  <div class="topbar">
+    <div class="logo">G</div>
+    <div class="grow">
+      <h1>GAMON Donate</h1>
+      <small>Panel admin</small>
+    </div>
+    <button class="icon-btn" id="refresh" title="Muat ulang" aria-label="Muat ulang">
+      <svg id="refreshIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 3v6h-6"/></svg>
+    </button>
+    <button class="btn ghost sm" id="logout">Keluar</button>
   </div>
 
-  <div class="card">
-    <strong>Tambah donasi manual</strong>
-    <p class="hint">Donasi baru ikut muncul sebagai notif di game dalam ±10 detik. Bisa dipakai untuk tes.</p>
-    <form id="addForm">
-      <div class="row">
-        <div><label for="aName">Nama donatur</label><input id="aName" required maxlength="80"></div>
-        <div><label for="aAmt">Nominal</label><input id="aAmt" type="number" min="1" step="1" required></div>
+  <div class="layout">
+    <section class="area-stats stats">
+      <div class="stat hero"><span>Total donasi</span><b id="sTotal">Rp 0</b></div>
+      <div class="stat"><span>Jumlah transaksi</span><b id="sCount">0</b></div>
+      <div class="stat"><span>Donatur unik</span><b id="sDonors">0</b></div>
+      <div class="stat"><span>Donasi terbesar</span><b id="sMax">Rp 0</b></div>
+    </section>
+
+    <section class="card area-top">
+      <div class="card-h"><h2>Top spender</h2><span class="sub">Semua waktu</span></div>
+      <div id="topList"></div>
+    </section>
+
+    <section class="card area-add">
+      <div class="card-h"><h2>Tambah donasi</h2></div>
+      <p class="hint" style="margin:0">Muncul sebagai notif di game dalam beberapa detik. Cocok untuk tes.</p>
+      <form id="addForm">
+        <label for="aName">Nama donatur</label>
+        <input id="aName" required maxlength="80" placeholder="Contoh: Budi">
+        <label for="aAmt">Nominal (Rp)</label>
+        <input id="aAmt" type="number" inputmode="numeric" min="1" step="1" required placeholder="10000">
+        <label for="aMsg">Pesan</label>
+        <input id="aMsg" maxlength="300" placeholder="Boleh pakai @username Roblox">
+        <div style="height:16px"></div>
+        <button class="btn block" type="submit">Tambah donasi</button>
+      </form>
+    </section>
+
+    <section class="card area-history">
+      <div class="card-h"><h2>Riwayat donasi</h2><span class="sub" id="histCount"></span></div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="q" placeholder="Cari nama atau pesan…">
       </div>
-      <label for="aMsg">Pesan (pakai @username Roblox untuk menargetkan pemain)</label>
-      <input id="aMsg" maxlength="300">
-      <div class="actions"><button type="submit">Tambah</button></div>
-    </form>
-  </div>
+      <div id="rows"></div>
+      <p id="empty" class="empty hidden">Belum ada donasi.</p>
+      <button class="btn ghost block more hidden" id="more">Tampilkan lebih banyak</button>
+    </section>
 
-  <div class="card">
-    <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px">
-      <strong>Riwayat donasi</strong>
-      <input id="q" placeholder="Cari nama / pesan…" style="max-width:240px">
-    </div>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>Waktu</th><th>Donatur</th><th>Nominal</th><th>Pesan</th><th></th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-    <p id="empty" class="hint hidden">Belum ada donasi.</p>
-  </div>
-
-  <div class="card">
-    <strong>URL Webhook Saweria</strong>
-    <p class="hint">Isi di Saweria → Integrasi → Webhook. Ganti <code>WEBHOOK_SECRET</code> dengan nilai env di Vercel.</p>
-    <code id="hook"></code>
+    <section class="card area-hook">
+      <div class="card-h"><h2>Webhook Saweria</h2></div>
+      <p class="hint">Tempel di Saweria → Integrasi → Webhook. Ganti <b>WEBHOOK_SECRET</b> dengan secret kamu.</p>
+      <div class="hook">
+        <code id="hook"></code>
+        <button class="btn ghost sm" id="copyHook">Salin</button>
+      </div>
+    </section>
   </div>
 </div>
 
 <dialog id="dlg">
   <form id="editForm" method="dialog">
-    <strong>Edit donasi</strong>
+    <h3>Edit donasi</h3>
     <label for="eName">Nama donatur</label><input id="eName" required maxlength="80">
-    <label for="eAmt">Nominal</label><input id="eAmt" type="number" min="1" step="1" required>
+    <label for="eAmt">Nominal (Rp)</label><input id="eAmt" type="number" inputmode="numeric" min="1" step="1" required>
     <label for="eMsg">Pesan</label><input id="eMsg" maxlength="300">
     <div class="actions">
-      <button type="button" class="ghost" id="eCancel">Batal</button>
-      <button type="submit">Simpan</button>
+      <button type="button" class="btn ghost" id="eCancel">Batal</button>
+      <button type="submit" class="btn">Simpan</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="cdlg">
+  <h3>Hapus donasi?</h3>
+  <p id="cText"></p>
+  <div class="actions">
+    <button type="button" class="btn ghost" id="cNo">Batal</button>
+    <button type="button" class="btn danger" id="cYes">Hapus</button>
+  </div>
 </dialog>
 
 <div id="toast" class="toast"></div>
 
 <script>
 const $ = (s) => document.querySelector(s);
+const el = (tag, cls, text) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+};
+const ICON_EDIT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
+const ICON_DEL = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+
 let pw = "";
 try { pw = sessionStorage.getItem("gamon_pw") || ""; } catch (e) {}
 let all = [];
 let editingId = null;
+let deleting = null;
+let shown = 30;
+const PAGE = 30;
 
 const rupiah = (n) => "Rp " + Number(n).toLocaleString("id-ID");
-const fmtDate = (iso) => new Date(iso).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+const fmtDate = (iso) => new Date(iso).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+function timeAgo(iso) {
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return "baru saja";
+  if (s < 3600) return Math.floor(s / 60) + " menit lalu";
+  if (s < 86400) return Math.floor(s / 3600) + " jam lalu";
+  return fmtDate(iso);
+}
 
-function toast(msg, isErr) {
+function toast(msg, type) {
   const t = $("#toast");
   t.textContent = msg;
-  t.className = "toast show" + (isErr ? " err" : "");
+  t.className = "toast show" + (type ? " " + type : "");
   clearTimeout(toast._t);
   toast._t = setTimeout(() => (t.className = "toast"), 2600);
 }
@@ -159,40 +270,79 @@ function logout() {
 async function load() {
   const j = await api("GET");
   all = j.donations;
-  $("#sCount").textContent = j.count.toLocaleString("id-ID");
-  $("#sTotal").textContent = rupiah(j.total);
-  $("#sDonors").textContent = new Set(all.map((d) => d.donator_name.toLowerCase())).size;
-  render();
+  renderStats(j);
+  renderTop();
+  renderHistory();
 }
 
-function render() {
+function renderStats(j) {
+  $("#sTotal").textContent = rupiah(j.total);
+  $("#sCount").textContent = j.count.toLocaleString("id-ID");
+  $("#sDonors").textContent = new Set(all.map((d) => d.donator_name.toLowerCase())).size.toLocaleString("id-ID");
+  $("#sMax").textContent = rupiah(all.reduce((m, d) => Math.max(m, d.amount_raw), 0));
+}
+
+function renderTop() {
+  const map = new Map();
+  for (const d of all) {
+    const k = d.donator_name.toLowerCase();
+    const cur = map.get(k) || { name: d.donator_name, total: 0, count: 0 };
+    cur.total += d.amount_raw;
+    cur.count += 1;
+    map.set(k, cur);
+  }
+  const top = [...map.values()].sort((a, b) => b.total - a.total).slice(0, 10);
+  const box = $("#topList");
+  box.textContent = "";
+  if (!top.length) { box.appendChild(el("p", "empty", "Belum ada donatur.")); return; }
+  const max = top[0].total;
+  top.forEach((t, i) => {
+    const row = el("div", "spender");
+    row.appendChild(el("div", "rank" + (i < 3 ? " r" + (i + 1) : ""), i + 1));
+    row.appendChild(el("div", "nm", t.name));
+    row.appendChild(el("div", "tot", rupiah(t.total)));
+    row.appendChild(el("div", "meta", t.count + "x donasi"));
+    const bar = el("div", "bar");
+    const fill = document.createElement("i");
+    fill.style.width = Math.max(4, Math.round((t.total / max) * 100)) + "%";
+    bar.appendChild(fill);
+    row.appendChild(bar);
+    box.appendChild(row);
+  });
+}
+
+function renderHistory() {
   const q = $("#q").value.trim().toLowerCase();
   const list = all.filter((d) => !q || (d.donator_name + " " + (d.message || "")).toLowerCase().includes(q));
-  const tbody = $("#rows");
-  tbody.textContent = "";
+  $("#histCount").textContent = list.length.toLocaleString("id-ID") + " donasi";
+  const box = $("#rows");
+  box.textContent = "";
   $("#empty").classList.toggle("hidden", list.length > 0);
-  for (const d of list) {
-    const tr = document.createElement("tr");
-    const cells = [fmtDate(d.created_at), d.donator_name, rupiah(d.amount_raw), d.message || "-"];
-    const cls = ["", "", "amt", "msg"];
-    cells.forEach((txt, i) => {
-      const td = document.createElement("td");
-      td.textContent = txt;
-      if (cls[i]) td.className = cls[i];
-      tr.appendChild(td);
-    });
-    const act = document.createElement("td");
-    act.className = "act";
-    const eb = document.createElement("button");
-    eb.className = "ghost"; eb.textContent = "Edit";
+  $("#empty").textContent = q ? "Tidak ada hasil." : "Belum ada donasi.";
+  for (const d of list.slice(0, shown)) {
+    const item = el("div", "item");
+    item.appendChild(el("div", "av", (d.donator_name[0] || "?").toUpperCase()));
+    const info = el("div", "info");
+    info.appendChild(el("div", "nm", d.donator_name));
+    if (d.message) info.appendChild(el("div", "ms", d.message));
+    const tm = el("div", "tm", timeAgo(d.created_at));
+    tm.title = new Date(d.created_at).toLocaleString("id-ID");
+    info.appendChild(tm);
+    item.appendChild(info);
+
+    const right = el("div", "right");
+    right.appendChild(el("div", "am", rupiah(d.amount_raw)));
+    const btns = el("div", "btns");
+    const eb = el("button", "icon-btn"); eb.innerHTML = ICON_EDIT; eb.title = "Edit"; eb.setAttribute("aria-label", "Edit");
     eb.onclick = () => openEdit(d);
-    const db = document.createElement("button");
-    db.className = "danger"; db.textContent = "Hapus";
-    db.onclick = () => del(d);
-    act.append(eb, db);
-    tr.appendChild(act);
-    tbody.appendChild(tr);
+    const db = el("button", "icon-btn del"); db.innerHTML = ICON_DEL; db.title = "Hapus"; db.setAttribute("aria-label", "Hapus");
+    db.onclick = () => askDelete(d);
+    btns.append(eb, db);
+    right.appendChild(btns);
+    item.appendChild(right);
+    box.appendChild(item);
   }
+  $("#more").classList.toggle("hidden", list.length <= shown);
 }
 
 function openEdit(d) {
@@ -203,32 +353,52 @@ function openEdit(d) {
   $("#dlg").showModal();
 }
 
-async function del(d) {
-  if (!confirm("Hapus donasi " + d.donator_name + " (" + rupiah(d.amount_raw) + ")?")) return;
-  try { await api("DELETE", "?id=" + encodeURIComponent(d.id)); toast("Dihapus"); await load(); }
-  catch (e) { toast(e.message, true); }
+function askDelete(d) {
+  deleting = d;
+  $("#cText").textContent = d.donator_name + " • " + rupiah(d.amount_raw);
+  $("#cdlg").showModal();
 }
+
+$("#cNo").onclick = () => $("#cdlg").close();
+$("#cYes").onclick = async () => {
+  const d = deleting;
+  $("#cdlg").close();
+  if (!d) return;
+  try { await api("DELETE", "?id=" + encodeURIComponent(d.id)); toast("Donasi dihapus", "ok"); await load(); }
+  catch (e) { toast(e.message, "err"); }
+};
 
 $("#loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const btn = $("#loginBtn");
+  btn.disabled = true; btn.textContent = "Memeriksa…";
   pw = $("#pw").value;
   try {
     await load();
     try { sessionStorage.setItem("gamon_pw", pw); } catch (e2) {}
     showApp();
-  } catch (err) { toast(err.message, true); }
+  } catch (err) { toast(err.message, "err"); }
+  btn.disabled = false; btn.textContent = "Masuk";
 });
 
 $("#logout").onclick = logout;
-$("#q").addEventListener("input", render);
+$("#q").addEventListener("input", () => { shown = PAGE; renderHistory(); });
+$("#more").onclick = () => { shown += PAGE; renderHistory(); };
 $("#eCancel").onclick = () => $("#dlg").close();
+
+$("#refresh").onclick = async () => {
+  const ic = $("#refreshIcon");
+  ic.classList.add("spin");
+  try { await load(); toast("Data diperbarui", "ok"); } catch (e) { toast(e.message, "err"); }
+  ic.classList.remove("spin");
+};
 
 $("#addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
     await api("POST", "", { donator_name: $("#aName").value, amount_raw: $("#aAmt").value, message: $("#aMsg").value });
-    e.target.reset(); toast("Donasi ditambahkan"); await load();
-  } catch (err) { toast(err.message, true); }
+    e.target.reset(); toast("Donasi ditambahkan", "ok"); await load();
+  } catch (err) { toast(err.message, "err"); }
 });
 
 $("#editForm").addEventListener("submit", async (e) => {
@@ -237,11 +407,16 @@ $("#editForm").addEventListener("submit", async (e) => {
     await api("PUT", "?id=" + encodeURIComponent(editingId), {
       donator_name: $("#eName").value, amount_raw: $("#eAmt").value, message: $("#eMsg").value,
     });
-    $("#dlg").close(); toast("Tersimpan"); await load();
-  } catch (err) { toast(err.message, true); }
+    $("#dlg").close(); toast("Perubahan disimpan", "ok"); await load();
+  } catch (err) { toast(err.message, "err"); }
 });
 
-$("#hook").textContent = location.origin + "/api/saweria-webhook?key=WEBHOOK_SECRET";
+const hookUrl = location.origin + "/api/saweria-webhook?key=WEBHOOK_SECRET";
+$("#hook").textContent = hookUrl;
+$("#copyHook").onclick = async () => {
+  try { await navigator.clipboard.writeText(hookUrl); toast("URL disalin", "ok"); }
+  catch (e) { toast("Tahan lalu salin manual", "err"); }
+};
 
 if (pw) { load().then(showApp).catch(() => showLogin()); } else { showLogin(); }
 </script>
