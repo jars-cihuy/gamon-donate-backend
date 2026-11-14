@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>GAMON Donate Admin</title>
+<style>
+  :root{--bg:#0b0b10;--card:#14141d;--line:#262634;--text:#f2f2f7;--muted:#8b8ba0;--accent:#ff8c3c;--danger:#ff5d5d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:20px;margin:0}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .stat b{display:block;font-size:22px;color:var(--accent)}
+  .stat span{color:var(--muted);font-size:13px}
+  input{width:100%;background:#0e0e15;border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px;font:inherit}
+  input:focus{outline:2px solid var(--accent)}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  button{background:var(--accent);color:#1a0d00;border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  button.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+  .row{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:640px){.stats{grid-template-columns:repeat(3,1fr)}.row{grid-template-columns:1fr 160px}}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:500;font-size:13px}
+  td.amt{color:var(--accent);font-weight:600;white-space:nowrap}
+  td.msg{color:var(--muted);max-width:260px;word-break:break-word}
+  td.act{white-space:nowrap;text-align:right}
+  td.act button{padding:5px 10px;font-size:13px;margin-left:4px}
+  .tablewrap{overflow-x:auto}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222232;border:1px solid var(--line);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.show{opacity:1}
+  .toast.err{border-color:var(--danger)}
+  .hint{color:var(--muted);font-size:13px}
+  code{background:#0e0e15;padding:2px 6px;border-radius:5px;word-break:break-all}
+  dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px;width:min(440px,92vw)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+  #login{max-width:360px;margin:12vh auto}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="login" class="card hidden">
+  <h1>GAMON Donate Admin</h1>
+  <p class="hint">Masukkan password admin (env <code>ADMIN_PASSWORD</code> di Vercel).</p>
+  <form id="loginForm">
+    <label for="pw">Password</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <div class="actions"><button type="submit">Masuk</button></div>
+  </form>
+</div>
+
+<div id="app" class="wrap hidden">
+  <header>
+    <h1>GAMON Donate Admin</h1>
+    <button class="ghost" id="logout">Keluar</button>
+  </header>
+
+  <div class="card stats">
+    <div class="stat"><b id="sCount">0</b><span>Total donasi</span></div>
+    <div class="stat"><b id="sTotal">0</b><span>Total nominal</span></div>
+    <div class="stat"><b id="sDonors">0</b><span>Donatur unik</span></div>
+  </div>
+
+  <div class="card">
+    <strong>Tambah donasi manual</strong>
+    <p class="hint">Donasi baru ikut muncul sebagai notif di game dalam ±10 detik. Bisa dipakai untuk tes.</p>
+    <form id="addForm">
+      <div class="row">
+        <div><label for="aName">Nama donatur</label><input id="aName" required maxlength="80"></div>
+        <div><label for="aAmt">Nominal</label><input id="aAmt" type="number" min="1" step="1" required></div>
+      </div>
+      <label for="aMsg">Pesan (pakai @username Roblox untuk menargetkan pemain)</label>
+      <input id="aMsg" maxlength="300">
+      <div class="actions"><button type="submit">Tambah</button></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px">
+      <strong>Riwayat donasi</strong>
+      <input id="q" placeholder="Cari nama / pesan…" style="max-width:240px">
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Waktu</th><th>Donatur</th><th>Nominal</th><th>Pesan</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p id="empty" class="hint hidden">Belum ada donasi.</p>
+  </div>
+
+  <div class="card">
+    <strong>URL Webhook Saweria</strong>
+    <p class="hint">Isi di Saweria → Integrasi → Webhook. Ganti <code>WEBHOOK_SECRET</code> dengan nilai env di Vercel.</p>
+    <code id="hook"></code>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <form id="editForm" method="dialog">
+    <strong>Edit donasi</strong>
+    <label for="eName">Nama donatur</label><input id="eName" required maxlength="80">
+    <label for="eAmt">Nominal</label><input id="eAmt" type="number" min="1" step="1" required>
+    <label for="eMsg">Pesan</label><input id="eMsg" maxlength="300">
+    <div class="actions">
+      <button type="button" class="ghost" id="eCancel">Batal</button>
+      <button type="submit">Simpan</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let pw = "";
+try { pw = sessionStorage.getItem("gamon_pw") || ""; } catch (e) {}
+let all = [];
+let editingId = null;
+
+const rupiah = (n) => "Rp " + Number(n).toLocaleString("id-ID");
+const fmtDate = (iso) => new Date(iso).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+
+function toast(msg, isErr) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr ? " err" : "");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => (t.className = "toast"), 2600);
+}
+
+async function api(method, query, body) {
+  const r = await fetch("/api/donations" + (query || ""), {
+    method,
+    headers: { "Content-Type": "application/json", "x-admin-password": pw },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) { logout(); throw new Error(j.error || "Tidak diizinkan"); }
+  if (!r.ok) throw new Error(j.error || "Error " + r.status);
+  return j;
+}
+
+function showLogin() { $("#app").classList.add("hidden"); $("#login").classList.remove("hidden"); }
+function showApp() { $("#login").classList.add("hidden"); $("#app").classList.remove("hidden"); }
+function logout() {
+  pw = "";
+  try { sessionStorage.removeItem("gamon_pw"); } catch (e) {}
+  showLogin();
+}
+
+async function load() {
+  const j = await api("GET");
+  all = j.donations;
+  $("#sCount").textContent = j.count.toLocaleString("id-ID");
+  $("#sTotal").textContent = rupiah(j.total);
+  $("#sDonors").textContent = new Set(all.map((d) => d.donator_name.toLowerCase())).size;
+  render();
+}
+
+function render() {
+  const q = $("#q").value.trim().toLowerCase();
+  const list = all.filter((d) => !q || (d.donator_name + " " + (d.message || "")).toLowerCase().includes(q));
+  const tbody = $("#rows");
+  tbody.textContent = "";
+  $("#empty").classList.toggle("hidden", list.length > 0);
+  for (const d of list) {
+    const tr = document.createElement("tr");
+    const cells = [fmtDate(d.created_at), d.donator_name, rupiah(d.amount_raw), d.message || "-"];
+    const cls = ["", "", "amt", "msg"];
+    cells.forEach((txt, i) => {
+      const td = document.createElement("td");
+      td.textContent = txt;
+      if (cls[i]) td.className = cls[i];
+      tr.appendChild(td);
+    });
+    const act = document.createElement("td");
+    act.className = "act";
+    const eb = document.createElement("button");
+    eb.className = "ghost"; eb.textContent = "Edit";
+    eb.onclick = () => openEdit(d);
+    const db = document.createElement("button");
+    db.className = "danger"; db.textContent = "Hapus";
+    db.onclick = () => del(d);
+    act.append(eb, db);
+    tr.appendChild(act);
+    tbody.appendChild(tr);
+  }
+}
+
+function openEdit(d) {
+  editingId = d.id;
+  $("#eName").value = d.donator_name;
+  $("#eAmt").value = d.amount_raw;
+  $("#eMsg").value = d.message || "";
+  $("#dlg").showModal();
+}
+
+async function del(d) {
+  if (!confirm("Hapus donasi " + d.donator_name + " (" + rupiah(d.amount_raw) + ")?")) return;
+  try { await api("DELETE", "?id=" + encodeURIComponent(d.id)); toast("Dihapus"); await load(); }
+  catch (e) { toast(e.message, true); }
+}
+
+$("#loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  pw = $("#pw").value;
+  try {
+    await load();
+    try { sessionStorage.setItem("gamon_pw", pw); } catch (e2) {}
+    showApp();
+  } catch (err) { toast(err.message, true); }
+});
+
+$("#logout").onclick = logout;
+$("#q").addEventListener("input", render);
+$("#eCancel").onclick = () => $("#dlg").close();
+
+$("#addForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await api("POST", "", { donator_name: $("#aName").value, amount_raw: $("#aAmt").value, message: $("#aMsg").value });
+    e.target.reset(); toast("Donasi ditambahkan"); await load();
+  } catch (err) { toast(err.message, true); }
+});
+
+$("#editForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await api("PUT", "?id=" + encodeURIComponent(editingId), {
+      donator_name: $("#eName").value, amount_raw: $("#eAmt").value, message: $("#eMsg").value,
+    });
+    $("#dlg").close(); toast("Tersimpan"); await load();
+  } catch (err) { toast(err.message, true); }
+});
+
+$("#hook").textContent = location.origin + "/api/saweria-webhook?key=WEBHOOK_SECRET";
+
+if (pw) { load().then(showApp).catch(() => showLogin()); } else { showLogin(); }
+</script>
+</body>
+</html>
